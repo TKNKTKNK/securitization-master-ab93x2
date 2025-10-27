@@ -1,4 +1,3 @@
-
 // PWA: register SW
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
@@ -6,7 +5,6 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-// Simple localStorage state
 function useLocalState(key, initial) {
   const [state, setState] = React.useState(() => {
     try {
@@ -21,47 +19,58 @@ function useLocalState(key, initial) {
 }
 
 function Badge({ children }) {
-  return React.createElement("span", { className: "inline-flex items-center rounded-full bg-neutral-800 px-2 py-1 text-xs text-neutral-200" }, children);
+  return React.createElement("span", { className: "inline-flex items-center rounded-full bg-neutral-200 px-2 py-1 text-xs text-neutral-800" }, children);
 }
 
-const SAMPLE_QUESTIONS = [
-  {
-    id: "2024-AM-103-01",
-    year: 2024,
-    sectionCode: "103",
-    section: "103 不動産投資の基礎",
-    type: "A",
-    stem: "不動産投資の基本概念に関する次の記述（ア〜エ）について、正誤を判定せよ。",
-    choices: [
-      { id: "ア", text: "リスク要因の洗い出しは投資判断に直結するため重要である。", isTrue: true,  explain: "要点: リスク特定→管理→期待収益調整。落とし穴: 用語の混同。" },
-      { id: "イ", text: "リスクが高いほど必ず期待収益は低下する。",                       isTrue: false, explain: "要点: 一般にリスクが高いほど期待収益率は上昇要求。落とし穴: ‘必ず’という断定に注意。" },
-      { id: "ウ", text: "ストック社会では維持更新投資の重要性が高まる。",                  isTrue: true,  explain: "要点: 保全投資→CFの安定性。落とし穴: 修繕=費用だけと誤解しない。" },
-      { id: "エ", text: "事後修繕のみを徹底すればライフサイクルコストは最小となる。",      isTrue: false, explain: "要点: 予防保全が有効。落とし穴: 目先コストと長期最適の混同。" },
-    ],
-    globalExplain: "投資基本と維持管理。用語の『絶対・必ず』に注意。",
-    difficulty: 1,
-    keywords: ["基本概念", "維持更新", "リスク"]
-  },
-  {
-    id: "2024-PM-104-07",
-    year: 2024,
-    sectionCode: "104",
-    section: "104 不動産証券化の法務／会計・税務",
-    type: "B",
-    stem: "SPCストラクチャに関する記述（ア〜エ）のうち『正しいものはいくつ』か。各選択肢に○×を付けよ。",
-    choices: [
-      { id: "ア", text: "倒産隔離ではSPCの目的限定や関与者の申立制限が論点になる。", isTrue: true,  explain: "要点: 目的限定・ノンリコ・申立制限等。" },
-      { id: "イ", text: "TMKは常に不動産そのものではなく受益権しか保有できない。",     isTrue: false, explain: "要点: TMKは現物を直接保有可能（スキームに依存）。" },
-      { id: "ウ", text: "真正売買性と会計オフバランスは完全に無関係で個別判断。",       isTrue: false, explain: "要点: 法律論と会計論は別概念だが相互に影響・整合の検討が必要。" },
-      { id: "エ", text: "倒産手続申立てをしない旨の誓約取得は隔離強化の一手段。",       isTrue: true,  explain: "要点: ノン・ペティション条項等。" },
-    ],
-    globalExplain: "法務の基礎。ノンペティション/真正売買/保有形態の整理。",
-    difficulty: 2,
-    keywords: ["倒産隔離", "TMK", "真正売買"]
-  },
-];
+// Fetch questions from /data/2024.json (can expand to multiple years later)
+async function loadQuestions() {
+  try {
+    const res = await fetch("/data/2024.json", { cache: "no-store" });
+    if (!res.ok) throw new Error("failed");
+    const data = await res.json();
+    if (Array.isArray(data) && data.length) return data;
+  } catch (e) {}
+  // Fallback samples embedded (for safety)
+  return [
+    {
+      id: "2024-AM-103-01",
+      year: 2024,
+      sectionCode: "103",
+      section: "103 不動産投資の基礎",
+      type: "A",
+      stem: "不動産投資の基本概念に関する次の記述（ア〜エ）について、正誤を判定せよ。",
+      choices: [
+        { id: "ア", text: "リスク要因の洗い出しは投資判断に直結するため重要である。", isTrue: true,  explain: "要点: リスク特定→管理→期待収益調整。落とし穴: 用語の混同。" },
+        { id: "イ", text: "リスクが高いほど必ず期待収益は低下する。",                       isTrue: false, explain: "要点: 一般にリスクが高いほど期待収益率は上昇要求。落とし穴: ‘必ず’という断定に注意。" },
+        { id: "ウ", text: "ストック社会では維持更新投資の重要性が高まる。",                  isTrue: true,  explain: "要点: 保全投資→CFの安定性。落とし穴: 修繕=費用だけと誤解しない。" },
+        { id: "エ", text: "事後修繕のみを徹底すればライフサイクルコストは最小となる。",      isTrue: false, explain: "要点: 予防保全が有効。落とし穴: 目先コストと長期最適の混同。" },
+      ],
+      globalExplain: "投資基本と維持管理。用語の『絶対・必ず』に注意。",
+      difficulty: 1,
+      keywords: ["基本概念", "維持更新", "リスク"]
+    },
+    {
+      id: "2024-PM-104-07",
+      year: 2024,
+      sectionCode: "104",
+      section: "104 不動産証券化の法務／会計・税務",
+      type: "B",
+      stem: "SPCストラクチャに関する記述（ア〜エ）のうち『正しいものはいくつ』か。各選択肢に○×を付けよ。",
+      choices: [
+        { id: "ア", text: "倒産隔離ではSPCの目的限定や関与者の申立制限が論点になる。", isTrue: true,  explain: "要点: 目的限定・ノンリコ・申立制限等。" },
+        { id: "イ", text: "TMKは常に不動産そのものではなく受益権しか保有できない。",     isTrue: false, explain: "要点: TMKは現物を直接保有可能（スキームに依存）。" },
+        { id: "ウ", text: "真正売買性と会計オフバランスは完全に無関係で個別判断。",       isTrue: false, explain: "要点: 法律論と会計論は別概念だが相互に影響・整合の検討が必要。" },
+        { id: "エ", text: "倒産手続申立てをしない旨の誓約取得は隔離強化の一手段。",       isTrue: true,  explain: "要点: ノン・ペティション条項等。" },
+      ],
+      globalExplain: "法務の基礎。ノンペティション/真正売買/保有形態の整理。",
+      difficulty: 2,
+      keywords: ["倒産隔離", "TMK", "真正売買"]
+    }
+  ];
+}
 
 function App() {
+  const [questions, setQuestions] = React.useState(null);
   const [focusSections, setFocusSections] = useLocalState("focus.sections", []);
   const [qIndex, setQIndex] = useLocalState("q.index", 0);
   const [choiceCursor, setChoiceCursor] = React.useState(0);
@@ -70,10 +79,18 @@ function App() {
   const [lastResult, setLastResult] = React.useState(null);
   const [stats, setStats] = useLocalState("stats.v1", {});
 
+  React.useEffect(() => {
+    loadQuestions().then(setQuestions);
+  }, []);
+
+  if (!questions) {
+    return React.createElement("div", { className: "min-h-screen bg-white text-black flex items-center justify-center" }, "読み込み中…");
+  }
+
   const pool = React.useMemo(() => {
-    const base = SAMPLE_QUESTIONS;
+    const base = questions;
     return (focusSections?.length ?? 0) > 0 ? base.filter(q => focusSections.includes(q.sectionCode)) : base;
-  }, [focusSections]);
+  }, [focusSections, questions]);
   const q = pool[qIndex % pool.length];
   const current = q.choices[choiceCursor];
 
@@ -126,9 +143,9 @@ function App() {
   const goPrevChoice = () => { if (choiceCursor > 0) setChoiceCursor(choiceCursor - 1); };
 
   const sectionList = React.useMemo(() => {
-    const codes = Array.from(new Set(SAMPLE_QUESTIONS.map(x => x.sectionCode)));
-    return codes;
-  }, []);
+    const codes = Array.from(new Set(questions.map(x => x.sectionCode)));
+    return codes.sort();
+  }, [questions]);
 
   const rateFor = (code) => {
     const s = stats[code] || { seen: 0, perfect: 0, wrongChoices: 0 };
@@ -145,13 +162,13 @@ function App() {
     });
   }, [stats, sectionList]);
 
-  return React.createElement("div", { className: "min-h-screen bg-black text-neutral-100" },
-    React.createElement("header", { className: "sticky top-0 z-10 border-b border-neutral-800 bg-black/80 backdrop-blur" },
+  return React.createElement("div", { className: "min-h-screen bg-white text-black" },
+    React.createElement("header", { className: "sticky top-0 z-10 border-b border-neutral-200 bg-white/90 backdrop-blur" },
       React.createElement("div", { className: "mx-auto flex max-w-3xl items-center justify-between px-4 py-3" },
-        React.createElement("div", { className: "text-sm uppercase tracking-widest text-neutral-400" }, "Securitization Master"),
+        React.createElement("div", { className: "text-sm uppercase tracking-widest text-neutral-500" }, "Securitization Master"),
         React.createElement("div", { className: "flex items-center gap-2" },
           React.createElement("button", {
-            className: "rounded-xl border border-neutral-700 px-3 py-1 text-xs text-neutral-200 hover:bg-neutral-900",
+            className: "rounded-xl border border-neutral-300 px-3 py-1 text-xs text-neutral-700 hover:bg-neutral-100",
             onClick: () => { setQIndex(0); setChoiceCursor(0); setMarks({}); }
           }, "再開")
         )
@@ -159,71 +176,71 @@ function App() {
     ),
     React.createElement("main", { className: "mx-auto max-w-3xl px-4 py-6" },
       React.createElement("div", { className: "mb-4 flex flex-wrap items-center gap-2" },
-        React.createElement("span", { className: "text-xs text-neutral-400" }, "出題分野（タップで絞込）:"),
+        React.createElement("span", { className: "text-xs text-neutral-500" }, "出題分野（タップで絞込）:"),
         ...sectionList.map(code => {
           const active = focusSections.includes(code);
           return React.createElement("button", {
             key: code,
             onClick: () => setFocusSections(prev => active ? prev.filter(x => x !== code) : [...prev, code]),
-            className: `rounded-full border px-3 py-1 text-xs ${active ? "border-neutral-200 bg-neutral-100 text-black" : "border-neutral-700 text-neutral-300 hover:bg-neutral-900"}`
+            className: `rounded-full border px-3 py-1 text-xs ${active ? "border-neutral-600 bg-neutral-800 text-white" : "border-neutral-300 text-neutral-700 hover:bg-neutral-100"}`
           }, code);
         }),
-        React.createElement("button", { onClick: () => setFocusSections(weakCodes), className: "ml-2 rounded-full border border-neutral-700 px-3 py-1 text-xs text-neutral-300 hover:bg-neutral-900" }, "苦手だけ"),
-        React.createElement("button", { onClick: () => setFocusSections([]), className: "rounded-full border border-neutral-700 px-3 py-1 text-xs text-neutral-300 hover:bg-neutral-900" }, "解除"),
+        React.createElement("button", { onClick: () => setFocusSections(weakCodes), className: "ml-2 rounded-full border border-neutral-300 px-3 py-1 text-xs text-neutral-700 hover:bg-neutral-100" }, "苦手だけ"),
+        React.createElement("button", { onClick: () => setFocusSections([]), className: "rounded-full border border-neutral-300 px-3 py-1 text-xs text-neutral-700 hover:bg-neutral-100" }, "解除"),
       ),
       React.createElement("div", { className: "mb-6 grid grid-cols-2 gap-3 md:grid-cols-4" },
-        React.createElement("div", { className: "rounded-2xl border border-neutral-800 p-4" },
-          React.createElement("div", { className: "text-xs text-neutral-400" }, "現在の分野"),
+        React.createElement("div", { className: "rounded-2xl border border-neutral-200 p-4" },
+          React.createElement("div", { className: "text-xs text-neutral-500" }, "現在の分野"),
           React.createElement("div", { className: "text-xl" }, q.section)
         ),
-        React.createElement("div", { className: "rounded-2xl border border-neutral-800 p-4" },
-          React.createElement("div", { className: "text-xs text-neutral-400" }, "分野別正答率（完全正解率）"),
+        React.createElement("div", { className: "rounded-2xl border border-neutral-200 p-4" },
+          React.createElement("div", { className: "text-xs text-neutral-500" }, "分野別正答率（完全正解率）"),
           React.createElement("div", { className: "mt-2 flex flex-wrap gap-2" },
             ...sectionList.map(cd => React.createElement(Badge, { key: cd }, `${cd}: ${rateFor(cd)}`))
           )
         ),
-        React.createElement("div", { className: "rounded-2xl border border-neutral-800 p-4" },
-          React.createElement("div", { className: "text-xs text-neutral-400" }, "問題進行"),
+        React.createElement("div", { className: "rounded-2xl border border-neutral-200 p-4" },
+          React.createElement("div", { className: "text-xs text-neutral-500" }, "問題進行"),
           React.createElement("div", { className: "text-2xl" }, `${(qIndex % pool.length) + 1} / ${pool.length}`)
         ),
-        React.createElement("div", { className: "rounded-2xl border border-neutral-800 p-4" },
-          React.createElement("div", { className: "text-xs text-neutral-400" }, "選択肢"),
+        React.createElement("div", { className: "rounded-2xl border border-neutral-200 p-4" },
+          React.createElement("div", { className: "text-xs text-neutral-500" }, "選択肢"),
           React.createElement("div", { className: "text-2xl" }, `${choiceCursor + 1} / ${q.choices.length}`)
         )
       ),
-      React.createElement("div", { className: "rounded-2xl border border-neutral-800 bg-neutral-950 p-5 shadow" },
-        React.createElement("div", { className: "mb-2 text-xs text-neutral-400" }, `${q.year}年度 / ${q.section} / 形式: ${q.type}`),
-        React.createElement("h1", { className: "mb-3 text-lg leading-relaxed" }, q.stem),
-        React.createElement("div", { className: "mt-4 rounded-xl border border-neutral-800 p-4" },
-          React.createElement("div", { className: "mb-2 flex items-center justify-between text-xs text-neutral-400" },
+      React.createElement("div", { className: "rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm" },
+        React.createElement("div", { className: "mb-2 text-xs text-neutral-500" }, `${q.year}年度 / ${q.section} / 形式: ${q.type}`),
+        React.createElement("h1", { className: "mb-3 text-lg leading-[1.9]" }, q.stem),
+        React.createElement("div", { className: "mt-4 rounded-xl border border-neutral-300 p-4" },
+          React.createElement("div", { className: "mb-2 flex items-center justify-between text-xs text-neutral-500" },
             React.createElement("span", null, `選択肢 ${choiceCursor + 1} / ${q.choices.length}`),
             React.createElement("div", { className: "flex items-center gap-2" },
-              React.createElement("button", { onClick: () => { if (choiceCursor > 0) setChoiceCursor(choiceCursor - 1); }, className: "rounded-lg border border-neutral-700 px-2 py-1 hover:bg-neutral-900" }, "戻る")
+              React.createElement("button", { onClick: () => { if (choiceCursor > 0) setChoiceCursor(choiceCursor - 1); }, className: "rounded-lg border border-neutral-300 px-2 py-1 hover:bg-neutral-100" }, "戻る")
             )
           ),
-          React.createElement("div", { className: "text-base leading-relaxed mb-3" }, `${current.id}. ${current.text}`),
+          React.createElement("div", { className: "text-base leading-[1.9] mb-3" }, `${current.id}. ${current.text}`),
           React.createElement("div", { className: "mt-2 flex gap-2" },
-            React.createElement("button", { className: "w-24 rounded-xl border border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-900 disabled:opacity-40", onClick: () => handleMark("○"), disabled: !!marks[current.id] }, "○ 正しい"),
-            React.createElement("button", { className: "w-24 rounded-xl border border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-900 disabled:opacity-40", onClick: () => handleMark("×"), disabled: !!marks[current.id] }, "× 誤り")
+            React.createElement("button", { className: "w-24 rounded-xl border border-neutral-300 px-4 py-2 text-sm hover:bg-neutral-100 disabled:opacity-40", onClick: () => handleMark("○"), disabled: !!marks[current.id] }, "○ 正しい"),
+            React.createElement("button", { className: "w-24 rounded-xl border border-neutral-300 px-4 py-2 text-sm hover:bg-neutral-100 disabled:opacity-40", onClick: () => handleMark("×"), disabled: !!marks[current.id] }, "× 誤り")
           ),
-          showExplain && React.createElement("div", { className: "mt-4 rounded-xl border border-neutral-700 bg-black/60 p-4" },
-            React.createElement("div", { className: "mb-1 text-xs text-neutral-400" }, "解説"),
+          showExplain && React.createElement("div", { className: "mt-4 rounded-xl border border-neutral-300 bg-white p-4" },
+            React.createElement("div", { className: "mb-1 text-xs text-neutral-500" }, "解説"),
             React.createElement("div", { className: "mb-2" },
-              current.isTrue ? React.createElement("div", { className: "text-green-400" }, "正解：○（正しい）") : React.createElement("div", { className: "text-red-400" }, "正解：×（誤り）")
+              current.isTrue ? React.createElement("div", { className: "text-green-600" }, "正解：○（正しい）") : React.createElement("div", { className: "text-red-600" }, "正解：×（誤り）")
             ),
-            React.createElement("p", { className: "text-sm leading-relaxed text-neutral-200" },
-              React.createElement("strong", null, "要点："), " ", current.explain.replace("要点:", "").split("落とし穴")[0]
+            React.createElement("p", { className: "text-sm leading-relaxed text-black" },
+              React.createElement("strong", { className: "text-red-600" }, "要点："), " ", current.explain.replace("要点:", "").split("落とし穴")[0]
             ),
-            current.explain.includes("落とし穴") && React.createElement("p", { className: "mt-2 text-sm leading-relaxed text-neutral-300" },
-              React.createElement("strong", null, "落とし穴："), current.explain.split("落とし穴:")[1]
+            current.explain.includes("落とし穴") && React.createElement("p", { className: "mt-2 text-sm leading-relaxed text-black" },
+              React.createElement("strong", { className: "text-red-600" }, "落とし穴："), current.explain.split("落とし穴:")[1]
             ),
-            (!lastResult?.correct) && encourage && React.createElement("div", { className: "mt-3 text-sm text-amber-300" }, encourage),
+            (!lastResult?.correct) && encourage && React.createElement("div", { className: "mt-3 text-sm text-amber-600" }, encourage),
             React.createElement("div", { className: "mt-4 flex justify-end" },
-              React.createElement("button", { onClick: () => closeExplain(), className: "rounded-lg border border-neutral-700 px-3 py-1 hover:bg-neutral-900" }, "閉じる（次へ）")
+              React.createElement("button", { onClick: () => closeExplain(), className: "rounded-lg border border-neutral-300 px-3 py-1 hover:bg-neutral-100" }, "閉じる（次へ）")
             )
           )
         ),
-        q.type === "B" && React.createElement("div", { className: "mt-4 text-xs text-neutral-400" }, "※B型：選択肢の○の数は問題終了時に自動集計されます。")
+        q.type === "B" && React.createElement("div", { className: "mt-4 text-xs text-neutral-500" }, "※B型：選択肢の○の数は問題終了時に自動集計されます。")
       )
     )
   );
