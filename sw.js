@@ -1,18 +1,13 @@
-// sw.js  : 一時的にSWを解除＆全キャッシュ削除して自己破棄
-self.addEventListener('install', (e) => self.skipWaiting());
-self.addEventListener('activate', (e) => {
-  e.waitUntil(
-    (async () => {
-      try {
-        // すべてのキャッシュ削除
-        const keys = await caches.keys();
-        await Promise.all(keys.map((k) => caches.delete(k)));
-        // このSWの登録解除
-        await self.registration.unregister();
-        // すべてのクライアントをリロード（真っ白解消）
-        const clientsList = await self.clients.matchAll({ type: 'window' });
-        clientsList.forEach((c) => c.navigate(c.url));
-      } catch (e) {}
-    })()
-  );
+// sw.js : 一時的にSWを完全解除
+self.addEventListener('install', e => self.skipWaiting());
+self.addEventListener('activate', e => {
+  e.waitUntil((async () => {
+    try {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k))); // 全キャッシュ削除
+      await self.registration.unregister();               // 登録解除
+      const clients = await self.clients.matchAll({type:'window'});
+      clients.forEach(c => c.navigate(c.url));            // 画面を再読み込み
+    } catch (e) {}
+  })());
 });
